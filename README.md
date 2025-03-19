@@ -1,4 +1,4 @@
-```markdown
+ 
 # NVIDIA Jetson AGX Xavier에서 Ollama와 Gemma 3를 이용한 Streamlit 챗봇 구축
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -289,5 +289,5 @@ elif input_type == "이미지":
 ## 라이선스 (License)
 
 이 프로젝트는 MIT License를 따릅니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
-```
+ 
  
