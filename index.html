@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ollama 🤖 챗봇</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      /* Reset and Basic Styling */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Helvetica Neue", sans-serif;
+      }
+
+      body {
+        background-color: #f4f4f8;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      /* Main Container */
+      .container {
+        background-color: #fff;
+        border-radius: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        padding: 40px;
+        padding-bottom: 60px; /* Space for the fixed send button */
+      }
+
+      /* Header */
+      .header {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .header h1 {
+        font-size: 2.8em;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-weight: 800;
+        letter-spacing: -1px;
+      }
+
+      /* Table of Contents */
+      .toc {
+        margin-bottom: 30px;
+        background-color: #f9f9f9;
+        border-left: 5px solid #3498db;
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      .toc h2 {
+        color: #3498db;
+        margin-bottom: 10px;
+        font-size: 1.4em;
+      }
+
+      .toc ul {
+        list-style: none;
+        padding-left: 20px;
+      }
+
+      .toc li a {
+        color: #666;
+        text-decoration: none;
+        transition: color 0.3s ease;
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .toc li a:hover {
+        color: #3498db;
+        margin-left: 5px;
+      }
+
+      /* Sections */
+      section {
+        margin-bottom: 40px;
+        padding-top: 20px;
+        border-bottom: 1px solid #ecf0f1;
+      }
+      section:last-child {
+        border-bottom: none;
+      }
+
+      section h2 {
+        font-size: 1.7em;
+        color: #34495e;
+        margin-bottom: 15px;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 5px;
+        display: inline-block;
+      }
+
+      section p {
+        font-size: 1.1em;
+        line-height: 1.6;
+        color: #555;
+        margin-bottom: 15px;
+      }
+
+      /* Chat Area */
+      .chat-area {
+        overflow-y: auto;
+        max-height: 400px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+      }
+
+      .message {
+        margin-bottom: 15px;
+        padding: 12px 18px;
+        border-radius: 20px;
+        position: relative;
+        clear: both;
+      }
+
+      .user-message {
+        background-color: #dcf8c6;
+        float: right;
+        text-align: right;
+      }
+
+      .bot-message {
+        background-color: #eee;
+        float: left;
+        text-align: left;
+      }
+
+      /* Input Area */
+      .input-area {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+      }
+
+      /* Input styling*/
+      input[type="text"],
+      textarea {
+        padding: 12px 20px;
+        border: 2px solid #ddd;
+        border-radius: 25px;
+        font-size: 1em;
+        outline: none;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        resize: none;
+        flex: 1;
+        width: 70%;
+      }
+
+      input[type="text"]:focus,
+      textarea:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+      }
+
+      /* File Upload */
+      .file-upload-label {
+        background-color: #3498db;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .file-upload-label:hover {
+        background-color: #2980b9;
+      }
+
+      #file-upload {
+        display: none;
+      }
+
+      /* Send Button */
+
+      #send-button {
+        background-color: #2ecc71;
+        color: white;
+        padding: 15px 25px;
+        border: none;
+        border-radius: 50%; /* Circular button */
+        cursor: pointer;
+        font-size: 1.2em;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        position: fixed; /* Fixed position */
+        bottom: 30px; /* Distance from bottom */
+        right: 30px; /* Distance from right */
+      }
+
+      #send-button:hover {
+        background-color: #27ae60;
+        transform: scale(1.1); /* Slightly enlarge on hover */
+      }
+
+      #send-button:active {
+        transform: scale(0.95); /* Slightly shrink when clicked */
+      }
+
+      /* Image Preview */
+      .image-preview {
+        margin-top: 10px;
+        text-align: center;
+      }
+
+      .image-preview img {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
+        text-align: center;
+        margin-top: 20px;
+        color: #3498db;
+      }
+
+      /* Error Message */
+      .error-message {
+        color: #e74c3c;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #fde4e1;
+        border-left: 5px solid #e74c3c;
+        border-radius: 5px;
+      }
+
+      /* Mobile Responsiveness */
+      @media (max-width: 600px) {
+        .container {
+          padding: 20px;
+          padding-bottom: 70px; /* Adjust for send button */
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        .header h1 {
+          font-size: 2em;
+        }
+        .input-area {
+          flex-direction: column; /* Stack elements vertically on small screens */
+        }
+
+        input[type="text"],
+        textarea {
+          width: 100%;
+          padding: 10px 15px;
+        }
+        #send-button {
+          /* Adjust as needed for mobile */
+          bottom: 20px;
+          right: 20px;
+          padding: 12px 20px;
+        }
+        .file-upload-label {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Ollama 🤖 챗봇</h1>
+        <p>Jetson AGX Xavier에서 실행되는 Ollama와 대화하세요!</p>
+      </div>
+
+      <div class="toc">
+        <h2>목차</h2>
+        <ul>
+          <li><a href="#about">🤖 챗봇 소개</a></li>
+          <li><a href="#features">✨ 주요 기능</a></li>
+          <li><a href="#tech">🛠️ 사용 기술</a></li>
+          <li><a href="#setup">🚀 설치 및 실행</a></li>
+          <li><a href="#usage">💬 사용 방법</a></li>
+        </ul>
+      </div>
+
+      <section id="about">
+        <h2>🤖 챗봇 소개</h2>
+        <p>
+          이 챗봇은 NVIDIA Jetson AGX Xavier에서 로컬로 실행되는 Ollama
+          서버와 연동하여 작동합니다. 클라우드 연결 없이도 대규모 언어 모델(LLM)과
+          대화할 수 있으며, 텍스트 질문뿐만 아니라 이미지에 대한 질의응답도
+          가능합니다.
+        </p>
+      </section>
+
+      <section id="features">
+        <h2>✨ 주요 기능</h2>
+        <ul>
+          <li>
+            💬 <strong>텍스트 질의응답:</strong> 궁금한 점을 텍스트로 질문하면
+            Ollama가 답변해줍니다.
+          </li>
+          <li>
+            🖼️ <strong>이미지 질의응답:</strong> 이미지를 업로드하고 이미지에 대한
+            질문을 하면 Ollama가 이미지 내용을 이해하고 답변합니다.
+          </li>
+          <li>
+            🚀 <strong>빠른 응답 속도:</strong> Jetson AGX Xavier의 강력한 성능 덕분에
+            빠른 응답을 받을 수 있습니다.
+          </li>
+          <li>
+            🔒 <strong>개인 정보 보호:</strong> 모든 데이터는 로컬에서 처리되므로
+            개인 정보 유출 걱정이 없습니다.
+          </li>
+          <li>
+            🔌 <strong>오프라인 사용:</strong> 인터넷 연결 없이도 챗봇을 사용할 수
+            있습니다.
+          </li>
+        </ul>
+      </section>
+
+      <section id="tech">
+        <h2>🛠️ 사용 기술</h2>
+        <ul>
+          <li>
+            <a href="https://ollama.ai/" target="_blank">Ollama</a>: 로컬 LLM
+            실행 및 관리
+          </li>
+          <li>
+            <a href="https://ai.google.dev/gemma/" target="_blank">Gemma 3</a>:
+            Google의 개방형 대규모 언어 모델
+          </li>
+          <li>
+            <a href="https://streamlit.io/" target="_blank">Streamlit</a>:
+            인터랙티브 웹 앱 프레임워크
+          </li>
+          <li>
+            <strong>requests</strong>: HTTP 요청 처리
+          </li>
+          <li>
+            <strong>PIL (Pillow)</strong>: 이미지 처리
+          </li>
+          <li>
+            <strong>base64</strong>: 이미지 인코딩/디코딩
+          </li>
+        </ul>
+      </section>
+
+      <section id="setup">
+        <h2>🚀 설치 및 실행</h2>
+        <p>자세한 설치 및 실행 방법은 GitHub 저장소의 README.md 파일을 참조하세요.</p>
+        <a
+          href="https://github.com/hwkims/nvidia-jetson-xavier-agx-ollama-gemm3"
+          target="_blank"
+          >GitHub 저장소 바로가기 🚀</a
+        >
+      </section>
+
+      <section id="usage">
+        <h2>💬 사용 방법</h2>
+        <div class="input-area">
+          <input
+            type="text"
+            id="user-input"
+            placeholder="여기에 질문을 입력하거나 이미지를 업로드하세요..."
+          />
+          <label for="file-upload" class="file-upload-label">
+            <i class="fas fa-image"></i> 이미지 업로드
+          </label>
+          <input type="file" id="file-upload" accept="image/*" />
+        </div>
+        <div class="image-preview" id="image-preview"></div>
+        <div class="chat-area" id="chat-area"></div>
+
+        <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+      </section>
+    </div>
+    <script>
+      const userInput = document.getElementById("user-input");
+      const chatArea = document.getElementById("chat-area");
+      const sendButton = document.getElementById("send-button");
+      const fileUpload = document.getElementById("file-upload");
+      const imagePreview = document.getElementById("image-preview");
+
+      // Ollama API 설정 (Jetson IP 및 모델)
+      const OLLAMA_HOST = "192.168.0.5:11434";
+      const OLLAMA_MODEL = "gemma3:4b";
+
+      let imageBase64 = null; // 이미지 데이터를 저장할 변수
+
+      function appendMessage(message, isUser) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message");
+        messageDiv.classList.add(isUser ? "user-message" : "bot-message");
+        messageDiv.textContent = message;
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+      }
+
+      async function sendMessage() {
+        const prompt = userInput.value;
+        if (!prompt && !imageBase64) {
+          alert("질문이나 이미지를 입력해주세요!");
+          return;
+        }
+
+        appendMessage(prompt, true); // 사용자 메시지 표시
+        userInput.value = ""; // 입력 필드 초기화
+
+        // 로딩 스피너 표시 (간단한 예시)
+        const loadingDiv = document.createElement("div");
+        loadingDiv.classList.add("loading-spinner");
+        loadingDiv.textContent = "답변 생성 중... ⏳";
+        chatArea.appendChild(loadingDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+
+        const data = {
+          prompt: prompt,
+          model: OLLAMA_MODEL,
+          stream: false,
+          format: "json",
+        };
+        if (imageBase64) {
+          data.images = [imageBase64];
+        }
+
+        try {
+          const response = await fetch(`http://${OLLAMA_HOST}/api/generate`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          // 로딩 스피너 제거
+          chatArea.removeChild(loadingDiv);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+           }
+
+          const responseData = await response.json();
+          appendMessage(responseData.response, false); // 봇 메시지 표시
+        } catch (error) {
+          console.error("Error:", error);
+          const errorDiv = document.createElement("div");
+          errorDiv.classList.add("error-message");
+          errorDiv.textContent = `오류 발생: ${error.message}`;
+          chatArea.appendChild(errorDiv);
+
+        } finally {
+          imageBase64 = null; // 이미지 데이터 초기화
+          imagePreview.innerHTML = ""; // 이미지 미리보기 제거
+          if(document.getElementById("temp-image")){
+            document.getElementById("temp-image").remove(); // 임시 이미지 태그 삭제
+          }
+        }
+      }
+
+      sendButton.addEventListener("click", sendMessage);
+      userInput.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          sendMessage();
+        }
+      });
+
+      fileUpload.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            imageBase64 = e.target.result.split(",")[1]; // base64 데이터 부분만 저장
+
+            // 이미지 미리보기
+            const imgPreview = document.createElement("img");
+            imgPreview.src = e.target.result;
+            imgPreview.alt = "Uploaded Image";
+            imgPreview.id = "temp-image"; // 임시 ID
+            imagePreview.innerHTML = ""; // Clear previous preview
+            imagePreview.appendChild(imgPreview);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+       // Trigger file upload when label is clicked
+      document.querySelector(".file-upload-label").addEventListener("click", () => {
+        fileUpload.click();
+      });
+
+    </script>
+  </body>
+</html>
