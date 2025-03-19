@@ -2,6 +2,9 @@
 # NVIDIA Jetson AGX Xavier에서 Ollama와 Gemma 3를 이용한 Streamlit 챗봇 구축
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![image](https://github.com/user-attachments/assets/1f6a6447-1220-464d-84da-b3cc6db6b057)
+
+![image](https://github.com/user-attachments/assets/81359d9f-330f-49ac-920d-741b4ae9e5ff)
 
 본 저장소는 NVIDIA Jetson AGX Xavier 보드에서 Ollama를 활용하여 로컬 대규모 언어 모델(LLM) 서버를 구축하고, Streamlit을 이용해 텍스트 및 이미지 입력을 받아 텍스트 답변을 생성하는 챗봇 애플리케이션을 제공합니다. 특히, Google의 Gemma 3 모델을 활용하여 이미지 이해 및 질의응답 기능을 구현했습니다.
 
